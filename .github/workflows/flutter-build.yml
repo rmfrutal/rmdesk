@@ -289,6 +289,18 @@ jobs:
           python3 .\build.py --portable --flutter --skip-portable-pack --hwcodec ${{ matrix.job.build-args }}
           mv ./flutter/build/windows/${{ matrix.job.flutter-arch }}/runner/Release ./rustdesk
 
+          # O RMDesk é entregue como um arquivo só, que o cliente executa sem
+          # instalar nada. Por isso as bibliotecas da Microsoft (VCRUNTIME140 e
+          # MSVCP140) precisam viajar dentro do pacote: num Windows que não as
+          # tenha, o programa abre e fecha sem mensagem nenhuma.
+          foreach ($dll in @("msvcp140.dll", "vcruntime140.dll", "vcruntime140_1.dll", "msvcp140_1.dll", "msvcp140_2.dll", "concrt140.dll")) {
+            $origem = Join-Path $env:WINDIR "System32\$dll"
+            if (Test-Path $origem) {
+              Copy-Item -Force $origem ./rustdesk
+              Write-Host "levando junto: $dll"
+            }
+          }
+
           # Download usbmmidd_v2.zip and extract it to ./rustdesk
           Invoke-WebRequest -Uri https://github.com/rustdesk-org/rdev/releases/download/usbmmidd_v2/usbmmidd_v2.zip -OutFile usbmmidd_v2.zip
           Expand-Archive usbmmidd_v2.zip -DestinationPath .

@@ -1,0 +1,14 @@
+name: Teste RMDesk
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  ola:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Diz ola
+        run: echo "RMDesk - teste de montagem"

@@ -1,0 +1,16 @@
+name: Teste acao de terceiro
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  usa-terceiro:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Instala o Rust por acao de terceiro
+        uses: dtolnay/rust-toolchain@stable
+      - name: Confere
+        run: rustc --version

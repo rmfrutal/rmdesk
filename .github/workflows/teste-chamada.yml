@@ -1,0 +1,12 @@
+name: Teste chamada de fluxo
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  chama:
+    uses: ./.github/workflows/teste-reusavel.yml
+    secrets: inherit

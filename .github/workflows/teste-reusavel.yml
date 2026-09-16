@@ -1,0 +1,10 @@
+name: Teste reusavel
+
+on:
+  workflow_call:
+
+jobs:
+  ola:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "chamado por outro fluxo"

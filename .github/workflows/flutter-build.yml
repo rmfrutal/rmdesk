@@ -2510,9 +2510,7 @@ jobs:
             flatpak/rustdesk-${{ env.VERSION }}-${{ matrix.job.arch }}${{ matrix.job.suffix }}.flatpak
 
   build-rustdesk-web:
-    # Ligado aqui: o acesso remoto do sistema é pelo navegador, então o cliente
-    # web faz parte da entrega. No projeto original ele vem desligado por ser
-    # uma versão de prévia.
+    if: False
     name: build-rustdesk-web
     runs-on: ubuntu-22.04
     permissions:
@@ -2520,7 +2518,7 @@ jobs:
     strategy:
       fail-fast: false
     env:
-      RELEASE_NAME: web
+      RELEASE_NAME: web-basic
     steps:
       - name: Checkout source code
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -2581,7 +2579,7 @@ jobs:
           cp ../web/README.md web
           # TODO: Remove the following line when the web is almost complete.
           echo -e "\n\nThis build is for preview and not full functionality." >> web/README.md
-          dir_name="rmdesk-${{ env.VERSION }}-${{ env.RELEASE_NAME }}"
+          dir_name="rustdesk-${{ env.VERSION }}-${{ env.RELEASE_NAME }}"
           mv web "${dir_name}" && tar czf "${dir_name}".tar.gz "${dir_name}"
           sha256sum "${dir_name}".tar.gz
           popd
@@ -2593,4 +2591,4 @@ jobs:
           prerelease: true
           tag_name: ${{ env.TAG_NAME }}
           files: |
-            flutter/build/rmdesk-${{ env.VERSION }}-${{ env.RELEASE_NAME }}.tar.gz
+            flutter/build/rustdesk-${{ env.VERSION }}-${{ env.RELEASE_NAME }}.tar.gz

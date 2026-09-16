@@ -2,7 +2,7 @@
 name = "rustdesk-portable-packer"
 version = "1.5.0"
 edition = "2021"
-description = "RustDesk Remote Desktop"
+description = "RMDesk Acesso Remoto"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -26,10 +26,10 @@ windows = { version = "0.61", features = [
 native-windows-gui = {version = "1.0", default-features = false, features = ["animation-timer", "image-decoder"]}
 
 [package.metadata.winres]
-LegalCopyright = "Copyright © 2026 Purslane Tech Pte. Ltd. All rights reserved."
-ProductName = "RustDesk"
-OriginalFilename = "rustdesk.exe"
-FileDescription = "RustDesk Remote Desktop"
+LegalCopyright = "RMDesk © 2026 RM Informática. Baseado no RustDesk (AGPL-3.0)."
+ProductName = "RMDesk"
+OriginalFilename = "rmdesk.exe"
+FileDescription = "RMDesk Acesso Remoto"
 #ProductVersion = ""
 
 [target.'cfg(target_os="windows")'.build-dependencies]

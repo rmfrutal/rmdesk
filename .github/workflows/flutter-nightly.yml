@@ -1,9 +1,8 @@
 name: Flutter Nightly Build
 
 on:
-  schedule:
-    # schedule build every night
-    - cron: "0 0 * * *"
+  # A montagem automática de toda madrugada foi desligada: aqui o instalador é
+  # gerado quando a gente cria uma etiqueta de versão, e não todo dia.
   workflow_dispatch:
 
 jobs:

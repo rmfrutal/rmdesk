@@ -9,6 +9,8 @@ edition = "2018"
 [features]
 default = []
 webrtc = ["dep:webrtc"]
+# RMDesk: monta a edição do cliente, que só recebe conexão e não se instala.
+rmdesk_cliente = []
 
 [dependencies]
 # new flexi_logger failed on rustc 1.75

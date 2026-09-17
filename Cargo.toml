@@ -46,6 +46,9 @@ unix-file-copy-paste = [
     "clipboard/unix-file-copy-paste",
 ]
 screencapturekit = ["cpal/screencapturekit"]
+# RMDesk: repassa o sinalizador da edição do cliente para hbb_common, onde as
+# travas (só receber conexão, não instalar) são gravadas na compilação.
+rmdesk_cliente = ["hbb_common/rmdesk_cliente"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

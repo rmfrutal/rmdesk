@@ -134,6 +134,15 @@ jobs:
               # no NV/Intel/AMD hardware exists on Windows-on-ARM, so vram stays disabled here.
               build-args: "",
             }
+        # RMDesk sai em duas edicoes, e cada arquitetura e montada nas duas.
+        #
+        # `suporte` e o programa completo, o que a RM Informatica usa para
+        # atender: digita o ID do cliente e assume a maquina. `cliente` e o que
+        # o cliente baixa -- so mostra o ID e a senha, nao tem onde digitar o ID
+        # de outra maquina e nao se instala.
+        edicao:
+          - { nome: suporte, build-args: "", msi: "sim" }
+          - { nome: cliente, build-args: "--rmdesk-cliente", msi: "nao" }
     steps:
       - name: Export GitHub Actions cache environment variables
         uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6
@@ -286,7 +295,7 @@ jobs:
         run: |
           # Windows: build RustDesk
           # --hwcodec is shared by all Windows targets; per-target extras (e.g. --vram) come from the matrix
-          python3 .\build.py --portable --flutter --skip-portable-pack --hwcodec ${{ matrix.job.build-args }}
+          python3 .\build.py --portable --flutter --skip-portable-pack --hwcodec ${{ matrix.job.build-args }} ${{ matrix.edicao.build-args }}
           mv ./flutter/build/windows/${{ matrix.job.flutter-arch }}/runner/Release ./rustdesk
 
           # O RMDesk é entregue como um arquivo só, que o cliente executa sem
@@ -362,7 +371,10 @@ jobs:
         if: env.UPLOAD_ARTIFACT == 'true'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: rustdesk-unsigned-windows-${{ matrix.job.arch }}
+          # O nome leva a edicao: sem isso, as duas montagens da mesma
+          # arquitetura (suporte e cliente) gravariam uma por cima da outra.
+          # A edicao de suporte mantem o nome antigo, que publish_unsigned baixa.
+          name: rustdesk-unsigned-windows-${{ matrix.job.arch }}${{ matrix.edicao.nome == 'cliente' && '-cliente' || '' }}
           path: rustdesk
 
       - name: Sign rustdesk files
@@ -382,7 +394,7 @@ jobs:
           python3 ./generate.py -f ../../rustdesk/ -o . -e ../../rustdesk/rustdesk.exe
           popd
           mkdir -p ./SignOutput
-          mv ./target/release/rustdesk-portable-packer.exe ./SignOutput/rmdesk-${{ env.VERSION }}-${{ matrix.job.arch }}.exe
+          mv ./target/release/rustdesk-portable-packer.exe ./SignOutput/rmdesk-${{ matrix.edicao.nome }}-${{ env.VERSION }}-${{ matrix.job.arch }}.exe
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce # v2
@@ -397,7 +409,11 @@ jobs:
         # Builds the MSI for the matrix arch. res/msi (WiX v4 + native CustomActions) carries
         # both x64 and ARM64 platform configs; WcaUtil/DUtil ship arm64 libs. msbuild platform
         # is x64 / ARM64; the produced Package.msi is globbed since its bin/<platform>/ dir varies.
-        if: env.UPLOAD_ARTIFACT == 'true'
+        #
+        # So para a edicao de suporte. A do cliente e entregue como um arquivo
+        # so, que executa sem instalar, e um instalador na pasta contradiz
+        # justamente isso.
+        if: env.UPLOAD_ARTIFACT == 'true' && matrix.edicao.msi == 'sim'
         run: |
           pushd ./res/msi
           python preprocess.py --arp -d ../../rustdesk
@@ -405,7 +421,7 @@ jobs:
           $msiPlatform = if ('${{ matrix.job.arch }}' -eq 'aarch64') { 'ARM64' } else { 'x64' }
           msbuild msi.sln -p:Configuration=Release -p:Platform=$msiPlatform /p:TargetVersion=Windows10
           $msi = Get-ChildItem ./Package/bin/*/Release/en-us/Package.msi | Select-Object -First 1
-          mv $msi.FullName ../../SignOutput/rmdesk-${{ env.VERSION }}-${{ matrix.job.arch }}.msi
+          mv $msi.FullName ../../SignOutput/rmdesk-${{ matrix.edicao.nome }}-${{ env.VERSION }}-${{ matrix.job.arch }}.msi
           sha256sum ../../SignOutput/rmdesk-*.msi
 
       - name: Build pre-built MSI template
@@ -426,7 +442,9 @@ jobs:
         # Building the arm64 template on the native arm64 runner makes the ARM
         # package available: the build agents are x64 and cannot run
         # preprocess.py against an ARM exe.
-        if: env.UPLOAD_ARTIFACT == 'true'
+        #
+        # So para a edicao de suporte, pela mesma razao do passo acima.
+        if: env.UPLOAD_ARTIFACT == 'true' && matrix.edicao.msi == 'sim'
         run: |
           git checkout -- res/msi
           cp -r ./rustdesk ./rustdesk-msi-template
@@ -450,7 +468,8 @@ jobs:
           rm -r -fo ./rustdesk-msi-template
 
       - name: Upload unsigned msi template
-        if: env.UPLOAD_ARTIFACT == 'true'
+        # So a edicao de suporte produz o modelo de MSI.
+        if: env.UPLOAD_ARTIFACT == 'true' && matrix.edicao.msi == 'sim'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: rustdesk-unsigned-msi-template-${{ matrix.job.arch }}

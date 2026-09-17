@@ -79,8 +79,35 @@ lazy_static::lazy_static! {
     pub static ref OVERWRITE_DISPLAY_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
     pub static ref DEFAULT_LOCAL_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
     pub static ref OVERWRITE_LOCAL_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
-    pub static ref HARD_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
+    // RMDesk: a edição do cliente nasce com as travas já postas.
+    //
+    // No projeto original estas chaves só chegam pelo `custom.txt`, um arquivo
+    // assinado com a chave privada da RustDesk que não temos. Como o RMDesk é
+    // versão modificada nossa, elas são gravadas aqui na compilação: quem monta
+    // com `--features rmdesk_cliente` sai com a edição do cliente, e quem monta
+    // sem o sinalizador sai com a de suporte, completa.
+    //
+    // `conn-type: incoming` faz o programa só receber conexão — some o painel
+    // da direita, onde se digita o ID de outra máquina. `disable-installation`
+    // tira o botão de instalar, já que o RMDesk do cliente é portátil.
+    pub static ref HARD_SETTINGS: RwLock<HashMap<String, String>> = RwLock::new(rmdesk_hard_settings());
     pub static ref BUILTIN_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
+}
+
+/// As travas gravadas na compilação da edição do cliente do RMDesk.
+///
+/// Sem o sinalizador `rmdesk_cliente` devolve o mapa vazio, e o programa se
+/// comporta exatamente como antes — é a edição de suporte, que continua
+/// podendo controlar outras máquinas e instalar-se.
+fn rmdesk_hard_settings() -> HashMap<String, String> {
+    #[allow(unused_mut)]
+    let mut settings = HashMap::new();
+    #[cfg(feature = "rmdesk_cliente")]
+    {
+        settings.insert("conn-type".to_owned(), "incoming".to_owned());
+        settings.insert("disable-installation".to_owned(), "Y".to_owned());
+    }
+    settings
 }
 
 #[cfg(target_os = "android")]
